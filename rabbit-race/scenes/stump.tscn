@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://cfm75trywpxji"]
+
+[ext_resource type="Texture2D" uid="uid://cgwggxlw07y2s" path="res://assets/obstacles/stump.png" id="1_c6xkf"]
+
+[node name="Stump" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(3, 3)
+texture = ExtResource("1_c6xkf")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+scale = Vector2(3, 3)
+polygon = PackedVector2Array(12.6667, -14.3333, 8, -14.6667, -2.33333, -4, -11, -7, -16, 6.33333, -19, 8.33333, -20, 14, 20, 14, 19, 3.33333, 14.3333, 0.666667)

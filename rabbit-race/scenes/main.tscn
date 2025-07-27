@@ -1,0 +1,27 @@
+[gd_scene load_steps=7 format=3 uid="uid://dwibr68b401rw"]
+
+[ext_resource type="Script" uid="uid://vh12l3g0ll2j" path="res://scenes/main.gd" id="1_jyhfs"]
+[ext_resource type="PackedScene" uid="uid://ewvdfom5sewp" path="res://scenes/background.tscn" id="1_sugp2"]
+[ext_resource type="PackedScene" uid="uid://dyryevo7mp0hh" path="res://scenes/ground.tscn" id="2_jyhfs"]
+[ext_resource type="PackedScene" uid="uid://cjg3bmlwuu2ib" path="res://scenes/rabbit.tscn" id="3_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://d27jnd2xgvlv8" path="res://scenes/hud.tscn" id="5_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://b7d4aerjgfr7h" path="res://scenes/game_over.tscn" id="6_tefeu"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_jyhfs")
+
+[node name="Background" parent="." instance=ExtResource("1_sugp2")]
+
+[node name="Ground" parent="." instance=ExtResource("2_jyhfs")]
+
+[node name="Rabbit" parent="." instance=ExtResource("3_tbgi4")]
+position = Vector2(182, 463)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+scale = Vector2(2, 2)
+skew = -0.619592
+
+[node name="HUD" parent="." instance=ExtResource("5_tbgi4")]
+
+[node name="GameOver" parent="." instance=ExtResource("6_tefeu")]
