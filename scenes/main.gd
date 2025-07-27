@@ -16,6 +16,7 @@ const SCORE_MODIFIER : int = 10
 const SPEED_MOD : int = 5000
 const START_SPEED : float = 10.0
 const MAX_SPEED : int = 25
+const GROUND_WIDTH : int = 2304  # Width of a single ground tile
 
 #var
 var speed : float
@@ -23,16 +24,18 @@ var screen_size : Vector2i
 var score : int  
 var game_running : bool
 var last_obs
-var ground_heght : int
+var ground_height : int
 var difficulty
 const MAX_DIFFICULTY : int = 2
 var high_score : int
+var ground_tiles : Array  # Array to track multiple ground tiles
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	screen_size = get_window().size
-	ground_heght = $Ground.get_node("Sprite2D").texture.get_height()
+	ground_height = $Ground.get_node("Sprite2D").texture.get_height()
 	$GameOver.get_node("Button").pressed.connect(new_game)
+	ground_tiles = [$Ground]  # Start with the initial ground tile
 	new_game()
 
 func new_game():
@@ -43,13 +46,21 @@ func new_game():
 	difficulty = 0
 	$BGMusic.play()
 	
+	# Clear obstacles
 	for obs in obstacles:
 		obs.queue_free()
 	obstacles.clear()
 	
+	# Reset rabbit and camera
 	$Rabbit.position = RABBIT_START
 	$Rabbit.velocity = Vector2i(0, 0)
 	$Camera2D.position = CAM_START
+	
+	# Reset ground tiles
+	for tile in ground_tiles:
+		if tile != $Ground:  # Don't delete the original ground
+			tile.queue_free()
+	ground_tiles = [$Ground]
 	$Ground.position = Vector2i(0, 0)
 	
 	$HUD.get_node("Play").show()
@@ -72,9 +83,8 @@ func _process(delta: float) -> void:
 		score += speed
 		show_score()
 	
-		#update rgoud
-		if $Camera2D.position.x - $Ground.position.x > screen_size.x * 1.5 :
-			$Ground.position.x += screen_size.x
+		# Update ground tiles - create new tiles as needed
+		update_ground_tiles()
 		
 		# remove obs
 		for obs in obstacles:
@@ -85,7 +95,27 @@ func _process(delta: float) -> void:
 		if Input.is_action_just_pressed("ui_accept"):
 			game_running = true
 			$HUD.get_node("Play").hide()
-			
+
+func update_ground_tiles():
+	# Check if we need to add a new ground tile
+	var rightmost_tile = ground_tiles[-1]
+	var camera_right_edge = $Camera2D.position.x + screen_size.x / 2
+	
+	# If camera is approaching the right edge of the rightmost tile, add a new one
+	if camera_right_edge > rightmost_tile.position.x + GROUND_WIDTH - screen_size.x:
+		var new_ground = $Ground.duplicate()
+		new_ground.position.x = rightmost_tile.position.x + GROUND_WIDTH
+		add_child(new_ground)
+		ground_tiles.append(new_ground)
+	
+	# Remove tiles that are far behind the camera
+	var camera_left_edge = $Camera2D.position.x - screen_size.x / 2
+	for i in range(ground_tiles.size() - 1, -1, -1):  # Iterate backwards
+		var tile = ground_tiles[i]
+		if tile.position.x + GROUND_WIDTH < camera_left_edge - screen_size.x:
+			if tile != $Ground:  # Don't delete the original ground
+				tile.queue_free()
+				ground_tiles.remove_at(i)
 		
 func show_score():
 	$HUD.get_node("Score").text = "SCORE: " + str(score / SCORE_MODIFIER)
