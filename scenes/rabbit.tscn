@@ -1,9 +1,14 @@
-[gd_scene load_steps=18 format=3 uid="uid://cjg3bmlwuu2ib"]
+[gd_scene load_steps=20 format=3 uid="uid://cjg3bmlwuu2ib"]
 
 [ext_resource type="Texture2D" uid="uid://cjn4prclo2s2a" path="res://assets/rabbit_skins/WhiteBunny/Idle.png" id="1_haj5u"]
 [ext_resource type="Script" uid="uid://bf48ihgk13jg0" path="res://scenes/rabbit.gd" id="1_ukfwh"]
 [ext_resource type="Texture2D" uid="uid://dto1jyxd730k2" path="res://assets/rabbit_skins/WhiteBunny/Running.png" id="2_ukfwh"]
+[ext_resource type="Texture2D" uid="uid://bdudj1evneqv8" path="res://Running.png" id="2_ybw8e"]
 [ext_resource type="AudioStream" uid="uid://bk7qw0riej5cg" path="res://rabbit_jump.mp3" id="3_ybw8e"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jct7b"]
+atlas = ExtResource("2_ybw8e")
+region = Rect2(224, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_dcyra"]
 atlas = ExtResource("1_haj5u")
@@ -47,6 +52,14 @@ region = Rect2(224, 0, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_jct7b"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jct7b")
+}],
+"loop": true,
+"name": &"down",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dcyra")
@@ -107,10 +120,8 @@ script = ExtResource("1_ukfwh")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_jct7b")
-animation = &"running"
+animation = &"down"
 autoplay = "idle"
-frame = 5
-frame_progress = 0.984758
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
 position = Vector2(1.125, 6.725)
