@@ -9,6 +9,10 @@ var obstacle_types := [stump_scene, rock_scene, barrel_scene]
 var obstacles: Array
 var bird_heights := [200, 390]
 
+# Fallback obstacle creation (for HTML5 compatibility)
+var obstacle_textures := []
+var use_fallback := false
+
 # const
 const RABBIT_START = Vector2i(150, 485)
 const CAM_START = Vector2i(575, 324)
@@ -36,7 +40,58 @@ func _ready() -> void:
 	ground_height = $Ground.get_node("Sprite2D").texture.get_height()
 	$GameOver.get_node("Button").pressed.connect(new_game)
 	ground_tiles = [$Ground]  # Start with the initial ground tile
+	
+	# Debug: Check if obstacle scenes loaded properly
+	print("Obstacle scenes loaded:")
+	for i in range(obstacle_types.size()):
+		if obstacle_types[i] != null:
+			print("  Obstacle ", i, ": OK")
+		else:
+			print("  Obstacle ", i, ": FAILED TO LOAD")
+			use_fallback = true
+	
+	# Load fallback textures if needed
+	if use_fallback:
+		print("Using fallback obstacle creation")
+		load_fallback_textures()
+	
 	new_game()
+
+func load_fallback_textures():
+	# Load textures directly for fallback obstacle creation
+	var stump_texture = load("res://assets/obstacles/stump.png")
+	var rock_texture = load("res://assets/obstacles/rock.png")
+	var barrel_texture = load("res://assets/obstacles/barrel.png")
+	
+	if stump_texture != null and rock_texture != null and barrel_texture != null:
+		obstacle_textures = [stump_texture, rock_texture, barrel_texture]
+		print("Fallback textures loaded successfully")
+	else:
+		print("Failed to load fallback textures")
+
+func create_fallback_obstacle(texture_index: int):
+	var obstacle = Area2D.new()
+	var sprite = Sprite2D.new()
+	var collision = CollisionPolygon2D.new()
+	
+	# Set up sprite
+	sprite.texture = obstacle_textures[texture_index]
+	sprite.scale = Vector2(3, 3)
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	
+	# Set up collision (simple rectangle)
+	var polygon = PackedVector2Array()
+	polygon.append(Vector2(-20, -20))
+	polygon.append(Vector2(20, -20))
+	polygon.append(Vector2(20, 20))
+	polygon.append(Vector2(-20, 20))
+	collision.polygon = polygon
+	collision.scale = Vector2(3, 3)
+	
+	obstacle.add_child(sprite)
+	obstacle.add_child(collision)
+	
+	return obstacle
 
 func new_game():
 	score = 0
@@ -121,32 +176,58 @@ func show_score():
 	$HUD.get_node("Score").text = "SCORE: " + str(score / SCORE_MODIFIER)
 
 func generate_obs():
-	if obstacles.is_empty() or last_obs.position.x < score + randi_range(400, 500):
-		var obs_type = obstacle_types[randi() % obstacle_types.size()]
+	# Check if we should generate obstacles
+	var should_generate = false
+	if obstacles.is_empty():
+		should_generate = true
+	elif last_obs != null and last_obs.position.x < score + randi_range(400, 500):
+		should_generate = true
+	
+	if should_generate:
+		# Generate ground obstacles
 		var obs
 		var max_obs = difficulty + 1
 		for i in range(randi() % max_obs + 1):
-			obs = obs_type.instantiate()
-			var obs_height = obs.get_node("Sprite2D").texture.get_height()
-			var obs_scale = obs.get_node("Sprite2D").scale
-			var obs_x : int = screen_size.x + score + 500 + (i * 100)
-			var obs_y : int = screen_size.y - 130
-			last_obs = obs
-			add_obs(obs, obs_x, obs_y)
-		#additionally random chance to spawn a bird
-		if difficulty ==  MAX_DIFFICULTY:
-			if (randi() % 2) == 0:
-				#generate bird obstacles
-				obs = bird_scene.instantiate()
-				var obs_x : int = screen_size.x + score + 400
-				var obs_y : int = bird_heights[randi() % bird_heights.size()]
+			if use_fallback:
+				# Use fallback obstacle creation
+				var texture_index = randi() % obstacle_textures.size()
+				obs = create_fallback_obstacle(texture_index)
+			else:
+				# Use preloaded scenes
+				var obs_type = obstacle_types[randi() % obstacle_types.size()]
+				if obs_type != null:
+					obs = obs_type.instantiate()
+				else:
+					continue
+			
+			if obs != null:
+				var obs_x : int = screen_size.x + score + 500 + (i * 100)
+				var obs_y : int = screen_size.y - 130
+				last_obs = obs
 				add_obs(obs, obs_x, obs_y)
+				print("Spawned obstacle at: ", obs_x, ", ", obs_y)  # Debug
+		
+		# Additionally random chance to spawn a bird
+		if difficulty == MAX_DIFFICULTY:
+			if (randi() % 2) == 0:
+				# Generate bird obstacles
+				if bird_scene != null and not use_fallback:
+					obs = bird_scene.instantiate()
+					if obs != null:
+						var obs_x : int = screen_size.x + score + 400
+						var obs_y : int = bird_heights[randi() % bird_heights.size()]
+						add_obs(obs, obs_x, obs_y)
+						print("Spawned bird at: ", obs_x, ", ", obs_y)  # Debug
 		
 func add_obs(obs, x, y):
-	obs.position = Vector2i(x, y)
-	obs.body_entered.connect(hit_obs)
-	add_child(obs)
-	obstacles.append(obs)
+	if obs != null:
+		obs.position = Vector2i(x, y)
+		obs.body_entered.connect(hit_obs)
+		add_child(obs)
+		obstacles.append(obs)
+		print("Added obstacle to scene. Total obstacles: ", obstacles.size())  # Debug
+	else:
+		print("Cannot add null obstacle")
 	
 func adjust_difficulty():
 	difficulty = score / SPEED_MOD
@@ -154,8 +235,9 @@ func adjust_difficulty():
 		difficulty = MAX_DIFFICULTY
 		
 func remove_obs(obs):
-	obs.queue_free()
-	obstacles.erase(obs)
+	if obs != null:
+		obs.queue_free()
+		obstacles.erase(obs)
 	
 func check_high_score():
 	if score > high_score:
