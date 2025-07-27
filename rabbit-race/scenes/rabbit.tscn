@@ -94,10 +94,10 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4rwyk"]
-size = Vector2(30.25, 22.375)
+size = Vector2(30.25, 19.05)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_g3ihv"]
-size = Vector2(30.25, 26)
+size = Vector2(30.25, 22.25)
 
 [node name="Rabbit" type="CharacterBody2D"]
 z_index = 1
@@ -113,11 +113,13 @@ frame = 5
 frame_progress = 0.984758
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
-position = Vector2(1.125, 5.0625)
+position = Vector2(1.125, 6.725)
+scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_4rwyk")
 
 [node name="JumpCol" type="CollisionShape2D" parent="."]
-position = Vector2(1.25, 3.25)
+position = Vector2(1.25, 5.125)
+scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_g3ihv")
 
 [node name="JumpSound" type="AudioStreamPlayer" parent="."]
