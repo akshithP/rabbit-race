@@ -41,6 +41,7 @@ func new_game():
 	game_running = false
 	get_tree().paused = false
 	difficulty = 0
+	$BGMusic.play()
 	
 	for obs in obstacles:
 		obs.queue_free()

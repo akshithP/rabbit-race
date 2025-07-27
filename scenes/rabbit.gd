@@ -13,7 +13,7 @@ func _physics_process(delta):
 			$RunCol.disabled = false
 			if Input.is_action_pressed("jump"):
 				velocity.y = JUMP_SPEED
-				#$JumpSound.play()
+				$JumpSound.play()
 			else:
 				$AnimatedSprite2D.play("running")
 	else:

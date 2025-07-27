@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dwibr68b401rw"]
+[gd_scene load_steps=8 format=3 uid="uid://dwibr68b401rw"]
 
 [ext_resource type="Script" uid="uid://vh12l3g0ll2j" path="res://scenes/main.gd" id="1_jyhfs"]
 [ext_resource type="PackedScene" uid="uid://ewvdfom5sewp" path="res://scenes/background.tscn" id="1_sugp2"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://cjg3bmlwuu2ib" path="res://scenes/rabbit.tscn" id="3_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://d27jnd2xgvlv8" path="res://scenes/hud.tscn" id="5_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://b7d4aerjgfr7h" path="res://scenes/game_over.tscn" id="6_tefeu"]
+[ext_resource type="AudioStream" uid="uid://cql3rklul6t5x" path="res://assets/summer nights.ogg" id="7_o6xl0"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_jyhfs")
@@ -25,3 +26,7 @@ skew = -0.619592
 [node name="HUD" parent="." instance=ExtResource("5_tbgi4")]
 
 [node name="GameOver" parent="." instance=ExtResource("6_tefeu")]
+
+[node name="BGMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_o6xl0")
+volume_db = -28.476

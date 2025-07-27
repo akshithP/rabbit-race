@@ -114,12 +114,10 @@ frame_progress = 0.984758
 
 [node name="RunCol" type="CollisionShape2D" parent="."]
 position = Vector2(1.125, 6.725)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_4rwyk")
 
 [node name="JumpCol" type="CollisionShape2D" parent="."]
 position = Vector2(1.25, 5.125)
-scale = Vector2(1, 1)
 shape = SubResource("RectangleShape2D_g3ihv")
 
 [node name="JumpSound" type="AudioStreamPlayer" parent="."]
