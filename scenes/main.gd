@@ -13,6 +13,10 @@ var bird_heights := [200, 390]
 var obstacle_textures := []
 var use_fallback := false
 
+# Touch controls
+var touch_start_pos := Vector2.ZERO
+var touch_active := false
+
 # const
 const RABBIT_START = Vector2i(150, 485)
 const CAM_START = Vector2i(575, 324)
@@ -121,6 +125,22 @@ func new_game():
 	$HUD.get_node("Play").show()
 	$GameOver.hide()
 
+# Handle touch input
+func _input(event):
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			# Touch started
+			touch_start_pos = event.position
+			touch_active = true
+			
+			# Start game if not running
+			if not game_running:
+				game_running = true
+				$HUD.get_node("Play").hide()
+		else:
+			# Touch ended
+			touch_active = false
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	if game_running:
@@ -147,7 +167,8 @@ func _process(delta: float) -> void:
 				remove_obs(obs)
 			
 	else:
-		if Input.is_action_just_pressed("ui_accept"):
+		# Check for keyboard input (for desktop) or touch input (for mobile)
+		if Input.is_action_just_pressed("ui_accept") or touch_active:
 			game_running = true
 			$HUD.get_node("Play").hide()
 

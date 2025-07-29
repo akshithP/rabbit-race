@@ -4,6 +4,10 @@ const GRAVITY : int = 4200
 const JUMP_SPEED : int = -1800
 const FAST_FALL_SPEED : int = 3000  # Speed for fast falling
 
+# Touch controls
+var touch_start_pos := Vector2.ZERO
+var touch_active := false
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
 	velocity.y += GRAVITY * delta
@@ -13,7 +17,7 @@ func _physics_process(delta):
 			$AnimatedSprite2D.play("idle")
 		else:  
 			$RunCol.disabled = false
-			if Input.is_action_just_pressed("jump"):
+			if Input.is_action_just_pressed("jump") or touch_active:
 				velocity.y = JUMP_SPEED
 				$JumpSound.play()
 			else:
@@ -27,3 +31,14 @@ func _physics_process(delta):
 			$AnimatedSprite2D.play("jumping")
 		
 	move_and_slide()
+
+# Handle touch input for jumping
+func _input(event):
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			# Touch started - jump
+			touch_start_pos = event.position
+			touch_active = true
+		else:
+			# Touch ended
+			touch_active = false
