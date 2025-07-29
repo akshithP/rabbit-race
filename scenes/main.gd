@@ -45,19 +45,10 @@ func _ready() -> void:
 	$GameOver.get_node("Button").pressed.connect(new_game)
 	ground_tiles = [$Ground]  # Start with the initial ground tile
 	
-	# Debug: Check if obstacle scenes loaded properly
-	print("Obstacle scenes loaded:")
-	for i in range(obstacle_types.size()):
-		if obstacle_types[i] != null:
-			print("  Obstacle ", i, ": OK")
-		else:
-			print("  Obstacle ", i, ": FAILED TO LOAD")
-			use_fallback = true
-	
-	# Load fallback textures if needed
-	if use_fallback:
-		print("Using fallback obstacle creation")
-		load_fallback_textures()
+	# Force fallback mode for HTML5 exports (ground obstacles have CollisionPolygon2D issues)
+	use_fallback = true
+	print("HTML5 Export: Using fallback obstacle creation (CollisionPolygon2D issues)")
+	load_fallback_textures()
 	
 	new_game()
 
@@ -67,32 +58,45 @@ func load_fallback_textures():
 	var rock_texture = load("res://assets/obstacles/rock.png")
 	var barrel_texture = load("res://assets/obstacles/barrel.png")
 	
+	print("Loading fallback textures for HTML5...")
+	print("Stump texture: ", stump_texture != null)
+	print("Rock texture: ", rock_texture != null)
+	print("Barrel texture: ", barrel_texture != null)
+	
 	if stump_texture != null and rock_texture != null and barrel_texture != null:
 		obstacle_textures = [stump_texture, rock_texture, barrel_texture]
 		print("Fallback textures loaded successfully")
 	else:
-		print("Failed to load fallback textures")
+		print("Failed to load fallback textures - using colored rectangles")
+		# Create simple colored rectangles as fallback
+		obstacle_textures = [Color.RED, Color.GREEN, Color.BLUE]
 
 func create_fallback_obstacle(texture_index: int):
 	var obstacle = Area2D.new()
-	var sprite = Sprite2D.new()
-	var collision = CollisionPolygon2D.new()
 	
-	# Set up sprite
-	sprite.texture = obstacle_textures[texture_index]
-	sprite.scale = Vector2(3, 3)
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# Set up sprite or colored rectangle
+	if obstacle_textures[texture_index] is Texture2D:
+		# Use actual texture
+		var sprite = Sprite2D.new()
+		sprite.texture = obstacle_textures[texture_index]
+		sprite.scale = Vector2(3, 3)
+		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		obstacle.add_child(sprite)
+	else:
+		# Use colored rectangle
+		var color_rect = ColorRect.new()
+		color_rect.color = obstacle_textures[texture_index]
+		color_rect.size = Vector2(60, 60)
+		color_rect.position = Vector2(-30, -30)
+		obstacle.add_child(color_rect)
 	
-	# Set up collision (simple rectangle)
-	var polygon = PackedVector2Array()
-	polygon.append(Vector2(-20, -20))
-	polygon.append(Vector2(20, -20))
-	polygon.append(Vector2(20, 20))
-	polygon.append(Vector2(-20, 20))
-	collision.polygon = polygon
+	# Set up collision with simple RectangleShape2D (more reliable than CollisionPolygon2D)
+	var collision = CollisionShape2D.new()
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(60, 60)  # Simple rectangle collision
+	collision.shape = shape
 	collision.scale = Vector2(3, 3)
 	
-	obstacle.add_child(sprite)
 	obstacle.add_child(collision)
 	
 	return obstacle
@@ -201,10 +205,13 @@ func generate_obs():
 	var should_generate = false
 	if obstacles.is_empty():
 		should_generate = true
+		print("No obstacles, generating first obstacle")
 	elif last_obs != null and last_obs.position.x < score + randi_range(400, 500):
 		should_generate = true
+		print("Generating new obstacle at score: ", score)
 	
 	if should_generate:
+		print("Starting obstacle generation...")
 		# Generate ground obstacles
 		var obs
 		var max_obs = difficulty + 1
@@ -213,6 +220,7 @@ func generate_obs():
 				# Use fallback obstacle creation
 				var texture_index = randi() % obstacle_textures.size()
 				obs = create_fallback_obstacle(texture_index)
+				print("Created fallback obstacle ", i, " with texture index: ", texture_index)
 			else:
 				# Use preloaded scenes
 				var obs_type = obstacle_types[randi() % obstacle_types.size()]
@@ -227,6 +235,8 @@ func generate_obs():
 				last_obs = obs
 				add_obs(obs, obs_x, obs_y)
 				print("Spawned obstacle at: ", obs_x, ", ", obs_y)  # Debug
+			else:
+				print("Failed to create obstacle")
 		
 		# Additionally random chance to spawn a bird
 		if difficulty == MAX_DIFFICULTY:
